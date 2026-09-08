@@ -1,11 +1,11 @@
+from typing import Any
+
 import ollama
-from typing import Dict, List, Any
+
 from config import MODEL, PROMPT_RANK, PROMPT_REWRITE
 
 
-def rank_cvs(
-    job_description: str | None, cvs_dict: Dict[str, str]
-) -> List[Dict[str, Any]]:
+def rank_cvs(job_description: str | None, cvs_dict: dict[str, str]) -> list[dict[str, Any]]:
     """
     Rank CVs based on job description using Ollama.
 
@@ -19,27 +19,21 @@ def rank_cvs(
     results = []
 
     for cv_name, cv_content in cvs_dict.items():
-        prompt = PROMPT_RANK.format(
-            job_description=job_description, cv_content=cv_content
-        )
+        prompt = PROMPT_RANK.format(job_description=job_description, cv_content=cv_content)
 
-        response = ollama.chat(
-            model=MODEL, messages=[{"role": "user", "content": prompt}]
-        )
+        response = ollama.chat(model=MODEL, messages=[{"role": "user", "content": prompt}])
 
         content = response["message"]["content"]
 
         # Parse response
         score_line = [line for line in content.split("\n") if line.startswith("Score:")]
-        explanation_line = [
-            line for line in content.split("\n") if line.startswith("Explanation:")
-        ]
+        explanation_line = [line for line in content.split("\n") if line.startswith("Explanation:")]
 
         if score_line and explanation_line:
             try:
                 score = float(score_line[0].split(":")[1].strip())
                 explanation = explanation_line[0].split(":", 1)[1].strip()
-            except:
+            except (ValueError, IndexError, AttributeError):
                 score = 0.0
                 explanation = "Error parsing response"
         else:
@@ -64,9 +58,7 @@ def rewrite_cv(job_description: str, cv_content: str) -> str:
     Returns:
         Rewritten CV in Markdown format
     """
-    prompt = PROMPT_REWRITE.format(
-        job_description=job_description, cv_content=cv_content
-    )
+    prompt = PROMPT_REWRITE.format(job_description=job_description, cv_content=cv_content)
 
     response = ollama.chat(model=MODEL, messages=[{"role": "user", "content": prompt}])
 

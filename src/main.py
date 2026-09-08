@@ -1,7 +1,8 @@
-import streamlit as st
 from io import BytesIO
-from markdown import markdown
+
+import streamlit as st
 from docx import Document
+from markdown import markdown
 
 from cv_loader import load_resumes
 from llm_client import rank_cvs, rewrite_cv
@@ -78,31 +79,28 @@ def jd_input_screen():
             st.session_state.step = "WELCOME"
             st.rerun()
     with col2:
-        if st.button("Analyser →"):
-            if jd and jd.strip():
-                st.session_state.job_description = jd
-                try:
-                    resumes = load_resumes()
-                    with st.spinner(
-                        "🔍 Analyse des CV en cours... Cela peut prendre quelques instants."
-                    ):
-                        top_resumes = rank_cvs(
-                            st.session_state.job_description, resumes
-                        )
-                    st.session_state.rankings = [
-                        f"{resume['name']} - {resume['score']} - {resume['explanation']}"
-                        for resume in top_resumes
-                    ]
-                    st.session_state.step = "RANKING_DISPLAY"
-                    st.rerun()
-                except ConnectionError:
-                    st.error(
-                        "❌ Impossible de se connecter à Ollama. Vérifiez que le service est démarré."
-                    )
-                except TimeoutError:
-                    st.error("⏱️ Le traitement a pris trop de temps. Réessayez.")
-                except Exception as e:
-                    st.error(f"❌ Erreur lors de l'analyse: {str(e)}")
+        if st.button("Analyser →") and jd and jd.strip():
+            st.session_state.job_description = jd
+            try:
+                resumes = load_resumes()
+                with st.spinner(
+                    "🔍 Analyse des CV en cours... Cela peut prendre quelques instants."
+                ):
+                    top_resumes = rank_cvs(st.session_state.job_description, resumes)
+                st.session_state.rankings = [
+                    f"{resume['name']} - {resume['score']} - {resume['explanation']}"
+                    for resume in top_resumes
+                ]
+                st.session_state.step = "RANKING_DISPLAY"
+                st.rerun()
+            except ConnectionError:
+                st.error(
+                    "❌ Impossible de se connecter à Ollama. Vérifiez que le service est démarré."
+                )
+            except TimeoutError:
+                st.error("⏱️ Le traitement a pris trop de temps. Réessayez.")
+            except Exception as e:
+                st.error(f"❌ Erreur lors de l'analyse: {str(e)}")
 
 
 def ranking_display_screen():
