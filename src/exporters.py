@@ -1,7 +1,7 @@
-from docx import Document
-from markdown import markdown
 from bs4 import BeautifulSoup, Tag
-from docx.shared import Pt, RGBColor
+from docx import Document
+from docx.shared import RGBColor
+from markdown import markdown
 
 
 def _parse_inline_elements(element, paragraph):

@@ -1,9 +1,10 @@
-import yaml
 from pathlib import Path
-from typing import Dict, Any
+from typing import Any
+
+import yaml
 
 
-def load_config(config_path: str | Path | None = None) -> Dict[str, Any]:
+def load_config(config_path: str | Path | None = None) -> dict[str, Any]:
     """Load configuration from a YAML file."""
     if config_path is None:
         # Chemin absolu relatif à ce fichier config.py
@@ -13,7 +14,7 @@ def load_config(config_path: str | Path | None = None) -> Dict[str, Any]:
     if not config_file.is_file():
         raise FileNotFoundError(f"Configuration file '{config_path}' not found.")
 
-    with open(config_file, "r") as f:
+    with config_file.open() as f:
         return yaml.safe_load(f)
 
 
