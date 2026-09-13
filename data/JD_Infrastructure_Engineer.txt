@@ -1,0 +1,61 @@
+INFRASTRUCTURE ENGINEER
+Design, operate and continuously improve reliable, secure and scalable IT infrastructure.
+
+EMPLOYMENT
+Full-time • Permanent • Hybrid or on-site depending on business needs
+LOCATION
+Flexible by role and project requirements
+
+THE OPPORTUNITY
+We are looking for an Infrastructure Engineer to support the design, deployment and operation of enterprise infrastructure services. The successful candidate will work across compute, storage, virtualization, cloud and automation technologies to deliver resilient platforms that meet business and operational needs.
+
+WHAT YOU WILL DO
+- Design, deploy and maintain server, storage, virtualization and cloud infrastructure.
+- Monitor platform health, capacity, availability and performance, and proactively address issues.
+- Automate provisioning, configuration and recurring operational tasks using infrastructure-as-code and scripting.
+- Manage operating system lifecycle activities, including patching, upgrades, hardening and end-of-life planning.
+- Contribute to backup, recovery, disaster recovery and business continuity capabilities.
+- Investigate incidents and problems, perform root-cause analysis and implement durable corrective actions.
+- Maintain accurate architecture diagrams, operating procedures, asset records and technical documentation.
+- Collaborate with network, cybersecurity, application, service management and vendor teams.
+- Participate in change management, technical reviews, on-call support and continuous service improvement.
+
+REQUIRED QUALIFICATIONS
+- Bachelor’s degree in Computer Science, Information Systems or an equivalent field, or comparable practical experience.
+- Hands-on experience administering Linux and/or Windows Server environments.
+- Working knowledge of virtualization, storage, backup and cloud infrastructure concepts.
+- Experience with scripting or automation using tools such as PowerShell, Python, Bash, Terraform or Ansible.
+- Understanding of DNS, DHCP, TCP/IP, identity, certificates and core enterprise infrastructure services.
+- Familiarity with monitoring, logging, IT service management and change control practices.
+- Strong troubleshooting, documentation and stakeholder communication skills.
+
+PREFERRED QUALIFICATIONS
+- Experience with one or more major cloud platforms.
+- Knowledge of container platforms and orchestration technologies.
+- Relevant infrastructure, cloud, Linux, Microsoft or virtualization certification.
+- Exposure to high-availability, regulated or hybrid environments.
+
+TYPICAL TECHNOLOGY LANDSCAPE
+Linux / Windows Server • Virtualization • Cloud • Storage • Backup • Terraform / Ansible • PowerShell / Python • Monitoring
+
+WHAT SUCCESS LOOKS LIKE
+- Infrastructure services consistently meet agreed reliability, security and performance objectives.
+- Provisioning and maintenance activities become more automated, repeatable and auditable.
+- Incidents are resolved efficiently and recurring causes are eliminated.
+- Technical documentation and operational readiness improve across the environment.
+
+ABOUT THE TEAM
+You will join a collaborative technology organisation that values engineering quality, customer outcomes and continuous learning. The team works with modern practices while adapting solutions to the operational, security and regulatory constraints of each environment.
+
+WHAT WE OFFER
+- Meaningful technical challenges with visible business impact.
+- A collaborative, inclusive and knowledge-sharing culture.
+- Opportunities for training, certification and career development.
+- Flexible working arrangements where compatible with project requirements.
+- A competitive compensation and benefits package aligned with local practices.
+
+EQUAL OPPORTUNITY
+We are an equal opportunity employer. We welcome applications from qualified candidates and make employment decisions based on skills, experience and role requirements. Reasonable adjustments are available throughout the recruitment process.
+
+HOW TO APPLY
+Please submit your CV and a short note explaining your interest in the role. Selected candidates will be invited to discuss their experience, technical approach and expectations with the hiring team.

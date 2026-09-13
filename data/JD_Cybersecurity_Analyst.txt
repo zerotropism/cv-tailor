@@ -1,0 +1,61 @@
+CYBERSECURITY ANALYST
+Detect, investigate and reduce cyber risk through disciplined security operations and continuous improvement.
+
+EMPLOYMENT
+Full-time • Permanent • Hybrid or on-site depending on business needs
+LOCATION
+Flexible by role and project requirements
+
+THE OPPORTUNITY
+We are looking for a Cybersecurity Analyst to help protect the organisation’s systems, data and users. The role will monitor security signals, investigate suspicious activity, support incident response and strengthen controls in collaboration with technology and business teams.
+
+WHAT YOU WILL DO
+- Monitor and triage security alerts from endpoint, identity, email, network, cloud and application sources.
+- Investigate suspicious activity, determine scope and impact, and document evidence and conclusions.
+- Support containment, eradication, recovery and post-incident review activities.
+- Maintain and improve detection rules, playbooks, dashboards and case-management workflows.
+- Conduct vulnerability reviews, track remediation and validate risk-reduction actions.
+- Contribute to identity, endpoint, cloud, data protection and security awareness initiatives.
+- Produce clear operational metrics, incident reports and risk-based recommendations.
+- Support audits, control assessments, policy implementation and security exception processes.
+- Collaborate with IT operations, engineering, legal, privacy and business stakeholders.
+
+REQUIRED QUALIFICATIONS
+- Bachelor’s degree in Cybersecurity, Computer Science or an equivalent field, or comparable practical experience.
+- Understanding of common attack techniques, security controls, incident response and vulnerability management.
+- Experience with security monitoring, investigation or administration tools.
+- Knowledge of endpoint, identity, network, cloud and email security fundamentals.
+- Ability to analyse logs, correlate events and communicate technical findings clearly.
+- Strong judgement, attention to detail, integrity and respect for confidentiality.
+- Ability to prioritise work based on business impact and risk.
+
+PREFERRED QUALIFICATIONS
+- Experience with SIEM, EDR, SOAR, threat intelligence or cloud security platforms.
+- Familiarity with recognised security frameworks and control standards.
+- Basic scripting or data-analysis skills for investigation and automation.
+- Relevant entry-level or professional cybersecurity certification.
+
+TYPICAL TECHNOLOGY LANDSCAPE
+SIEM • EDR • Identity Security • Cloud Security • Vulnerability Management • Threat Intelligence • SOAR • Python / KQL
+
+WHAT SUCCESS LOOKS LIKE
+- Security alerts are assessed consistently and material incidents are escalated promptly.
+- Investigations produce clear evidence, decisions and remediation actions.
+- Detection coverage and operational playbooks improve over time.
+- Stakeholders receive practical, risk-based guidance that strengthens security posture.
+
+ABOUT THE TEAM
+You will join a collaborative technology organisation that values engineering quality, customer outcomes and continuous learning. The team works with modern practices while adapting solutions to the operational, security and regulatory constraints of each environment.
+
+WHAT WE OFFER
+- Meaningful technical challenges with visible business impact.
+- A collaborative, inclusive and knowledge-sharing culture.
+- Opportunities for training, certification and career development.
+- Flexible working arrangements where compatible with project requirements.
+- A competitive compensation and benefits package aligned with local practices.
+
+EQUAL OPPORTUNITY
+We are an equal opportunity employer. We welcome applications from qualified candidates and make employment decisions based on skills, experience and role requirements. Reasonable adjustments are available throughout the recruitment process.
+
+HOW TO APPLY
+Please submit your CV and a short note explaining your interest in the role. Selected candidates will be invited to discuss their experience, technical approach and expectations with the hiring team.
