@@ -22,3 +22,8 @@ class FakeLLM:
         if not self.structured:
             raise AssertionError("FakeLLM ran out of structured answers")
         return schema.model_validate(self.structured.pop(0).model_dump())
+
+    def complete_structured_many(
+        self, instructions: str, data: list[str], schema: type[ModelT]
+    ) -> list[ModelT]:
+        return [self.complete_structured(instructions, block, schema) for block in data]

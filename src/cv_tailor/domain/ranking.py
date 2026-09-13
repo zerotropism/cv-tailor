@@ -26,10 +26,13 @@ def rank(
     top_n: int = DEFAULT_TOP_N,
 ) -> list[Ranking]:
     """Score every CV, best first. Ties keep their input order."""
-    rankings = []
-    for name, content in cvs.items():
-        match = llm.complete_structured(instructions, job_and_cv(job_description, content), Match)
-        rankings.append(Ranking(name=name, score=match.score, explanation=match.explanation))
+    names = list(cvs)
+    blocks = [job_and_cv(job_description, cvs[name]) for name in names]
+    matches = llm.complete_structured_many(instructions, blocks, Match)
 
+    rankings = [
+        Ranking(name=name, score=match.score, explanation=match.explanation)
+        for name, match in zip(names, matches, strict=True)
+    ]
     rankings.sort(key=lambda ranking: ranking.score, reverse=True)
     return rankings[:top_n]
