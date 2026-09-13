@@ -4,8 +4,8 @@ import streamlit as st
 from docx import Document
 from markdown import markdown
 
-from cv_loader import load_resumes
-from llm_client import rank_cvs, rewrite_cv
+from cv_tailor.cv_loader import load_resumes
+from cv_tailor.llm_client import rank_cvs, rewrite_cv
 
 
 def init_session_state():
@@ -165,7 +165,7 @@ def result_screen():
             st.rerun()
     with col2:
         # Téléchargement Word
-        from exporters import to_word
+        from cv_tailor.exporters import to_word
 
         doc = to_word(st.session_state.result)
         buffer = BytesIO()

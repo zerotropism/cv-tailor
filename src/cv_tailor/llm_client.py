@@ -2,7 +2,7 @@ from typing import Any
 
 import ollama
 
-from config import MODEL, PROMPT_RANK, PROMPT_REWRITE
+from cv_tailor.config import MODEL, PROMPT_RANK, PROMPT_REWRITE
 
 
 def rank_cvs(job_description: str | None, cvs_dict: dict[str, str]) -> list[dict[str, Any]]:
