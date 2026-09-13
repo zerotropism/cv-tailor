@@ -19,6 +19,10 @@ def init_session_state():
         st.session_state.selected_cv = None
     if "result" not in st.session_state:
         st.session_state.result = ""
+    if "resumes" not in st.session_state:
+        st.session_state.resumes = {}
+    if "rankings" not in st.session_state:
+        st.session_state.rankings = []
 
 
 def welcome_screen():
@@ -87,10 +91,8 @@ def jd_input_screen():
                     "🔍 Analyse des CV en cours... Cela peut prendre quelques instants."
                 ):
                     top_resumes = rank_cvs(st.session_state.job_description, resumes)
-                st.session_state.rankings = [
-                    f"{resume['name']} - {resume['score']} - {resume['explanation']}"
-                    for resume in top_resumes
-                ]
+                st.session_state.resumes = resumes
+                st.session_state.rankings = top_resumes
                 st.session_state.step = "RANKING_DISPLAY"
                 st.rerun()
             except ConnectionError:
@@ -106,7 +108,7 @@ def jd_input_screen():
 def ranking_display_screen():
     st.title("📊 Classement des CV")
     for i, ranking in enumerate(st.session_state.rankings, 1):
-        st.write(f"{i}. {ranking}")
+        st.write(f"{i}. {ranking['name']} - {ranking['score']} - {ranking['explanation']}")
     col1, col2 = st.columns(2)
     with col1:
         if st.button("← Retour"):
@@ -120,7 +122,12 @@ def ranking_display_screen():
 
 def cv_selection_screen():
     st.title("📄 Sélection du CV")
-    selected_resume = st.selectbox("Choisissez un CV", st.session_state.rankings)
+    rankings = {r["name"]: r for r in st.session_state.rankings}
+    selected_name = st.selectbox(
+        "Choisissez un CV",
+        list(rankings),
+        format_func=lambda name: f"{name} ({rankings[name]['score']})",
+    )
     col1, col2 = st.columns(2)
     with col1:
         if st.button("← Retour"):
@@ -128,11 +135,12 @@ def cv_selection_screen():
             st.rerun()
     with col2:
         if st.button("Générer →"):
-            st.session_state.selected_cv = selected_resume
+            st.session_state.selected_cv = selected_name
             try:
                 with st.spinner("✍️ Optimisation du wording du CV en cours..."):
                     st.session_state.result = rewrite_cv(
-                        st.session_state.job_description, selected_resume
+                        st.session_state.job_description,
+                        st.session_state.resumes[selected_name],
                     )
                 st.session_state.step = "RESULT"
                 st.rerun()

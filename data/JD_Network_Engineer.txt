@@ -1,0 +1,61 @@
+NETWORK ENGINEER
+Build and operate secure, high-performance connectivity across enterprise and cloud environments.
+
+EMPLOYMENT
+Full-time • Permanent • Hybrid or on-site depending on business needs
+LOCATION
+Flexible by role and project requirements
+
+THE OPPORTUNITY
+We are seeking a Network Engineer to design, implement and support reliable network services across office, data-centre and cloud environments. This role combines hands-on operations, troubleshooting, automation and project delivery to ensure users and systems remain securely connected.
+
+WHAT YOU WILL DO
+- Design, configure and support LAN, WAN, WLAN, data-centre and cloud networking services.
+- Administer routers, switches, firewalls, load balancers, VPNs and related network services.
+- Monitor availability, latency, capacity and packet performance, and address degradation proactively.
+- Troubleshoot complex connectivity incidents using structured diagnostics and packet-level analysis.
+- Implement network segmentation, access controls, secure remote access and resilient routing patterns.
+- Support network changes, migrations, site deployments and technology refresh programmes.
+- Automate configuration, validation, inventory and reporting tasks using APIs and scripting.
+- Maintain network diagrams, standards, configuration records, runbooks and recovery procedures.
+- Collaborate with cybersecurity, cloud, infrastructure, application, telecom and service provider teams.
+
+REQUIRED QUALIFICATIONS
+- Bachelor’s degree in Networking, Computer Science or an equivalent field, or comparable practical experience.
+- Practical experience with enterprise routing, switching, wireless and firewall technologies.
+- Strong understanding of TCP/IP, VLANs, routing protocols, NAT, DNS, DHCP, VPNs and QoS.
+- Experience diagnosing network faults with monitoring and packet-analysis tools.
+- Awareness of network security principles, segmentation and least-privilege access.
+- Ability to plan and execute controlled changes in production environments.
+- Clear documentation, analytical thinking and effective communication skills.
+
+PREFERRED QUALIFICATIONS
+- Knowledge of software-defined networking, SD-WAN or cloud network services.
+- Experience with network automation using Python, Ansible, APIs or source-controlled templates.
+- Relevant networking or security certification.
+- Exposure to multi-site, high-availability or regulated environments.
+
+TYPICAL TECHNOLOGY LANDSCAPE
+Routing & Switching • Firewalls • WLAN • VPN • Load Balancing • Cloud Networking • Python / Ansible • Network Monitoring
+
+WHAT SUCCESS LOOKS LIKE
+- Network services meet availability, security and performance targets.
+- Changes are delivered predictably with minimal disruption and clear rollback plans.
+- Fault diagnosis becomes faster through stronger monitoring, documentation and automation.
+- Network architecture remains scalable, supportable and aligned with business needs.
+
+ABOUT THE TEAM
+You will join a collaborative technology organisation that values engineering quality, customer outcomes and continuous learning. The team works with modern practices while adapting solutions to the operational, security and regulatory constraints of each environment.
+
+WHAT WE OFFER
+- Meaningful technical challenges with visible business impact.
+- A collaborative, inclusive and knowledge-sharing culture.
+- Opportunities for training, certification and career development.
+- Flexible working arrangements where compatible with project requirements.
+- A competitive compensation and benefits package aligned with local practices.
+
+EQUAL OPPORTUNITY
+We are an equal opportunity employer. We welcome applications from qualified candidates and make employment decisions based on skills, experience and role requirements. Reasonable adjustments are available throughout the recruitment process.
+
+HOW TO APPLY
+Please submit your CV and a short note explaining your interest in the role. Selected candidates will be invited to discuss their experience, technical approach and expectations with the hiring team.

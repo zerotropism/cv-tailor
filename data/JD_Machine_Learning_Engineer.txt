@@ -1,0 +1,61 @@
+MACHINE LEARNING ENGINEER
+Turn machine learning models into reliable, measurable and scalable production capabilities.
+
+EMPLOYMENT
+Full-time • Permanent • Hybrid or on-site depending on business needs
+LOCATION
+Flexible by role and project requirements
+
+THE OPPORTUNITY
+We are seeking a Machine Learning Engineer to design, build and operate production-grade machine learning solutions. The role bridges data science and software engineering, with responsibility for model development, deployment, evaluation, monitoring and continuous improvement.
+
+WHAT YOU WILL DO
+- Translate business problems into measurable machine learning objectives and technical requirements.
+- Develop, train, evaluate and optimise machine learning models and supporting data pipelines.
+- Build maintainable services, APIs and batch or streaming inference workflows.
+- Establish reproducible experimentation, versioning, testing and model release processes.
+- Deploy models to cloud, on-premises or hybrid environments using appropriate platform patterns.
+- Monitor model quality, drift, latency, cost and reliability, and implement feedback loops.
+- Apply responsible AI, privacy, security, explainability and governance requirements throughout the lifecycle.
+- Collaborate with data scientists, software engineers, platform teams, domain experts and product stakeholders.
+- Document architecture, assumptions, datasets, evaluations, operational procedures and limitations.
+
+REQUIRED QUALIFICATIONS
+- Bachelor’s or Master’s degree in Computer Science, Machine Learning, Data Science or a related quantitative field, or comparable practical experience.
+- Strong Python skills and experience with common machine learning and data-processing libraries.
+- Solid understanding of supervised and unsupervised learning, evaluation methods and statistical reasoning.
+- Experience building tested software components, APIs and data pipelines.
+- Familiarity with containers, source control, CI/CD and production monitoring.
+- Ability to explain model behaviour, trade-offs and limitations to technical and non-technical audiences.
+- Strong problem-solving, experimentation and teamwork skills.
+
+PREFERRED QUALIFICATIONS
+- Experience with MLOps platforms, feature stores, model registries or distributed processing.
+- Knowledge of deep learning, NLP, computer vision or generative AI.
+- Experience deploying models in cloud, edge, on-premises or regulated environments.
+- Familiarity with responsible AI, data governance and model risk management.
+
+TYPICAL TECHNOLOGY LANDSCAPE
+Python • scikit-learn / PyTorch / TensorFlow • SQL • APIs • Containers • CI/CD • Model Registry • Monitoring
+
+WHAT SUCCESS LOOKS LIKE
+- Models deliver measurable value against agreed business and technical metrics.
+- Training and deployment workflows are reproducible, tested and automated.
+- Production behaviour is observable, with drift and quality issues detected early.
+- Solutions remain maintainable, secure and appropriately governed throughout their lifecycle.
+
+ABOUT THE TEAM
+You will join a collaborative technology organisation that values engineering quality, customer outcomes and continuous learning. The team works with modern practices while adapting solutions to the operational, security and regulatory constraints of each environment.
+
+WHAT WE OFFER
+- Meaningful technical challenges with visible business impact.
+- A collaborative, inclusive and knowledge-sharing culture.
+- Opportunities for training, certification and career development.
+- Flexible working arrangements where compatible with project requirements.
+- A competitive compensation and benefits package aligned with local practices.
+
+EQUAL OPPORTUNITY
+We are an equal opportunity employer. We welcome applications from qualified candidates and make employment decisions based on skills, experience and role requirements. Reasonable adjustments are available throughout the recruitment process.
+
+HOW TO APPLY
+Please submit your CV and a short note explaining your interest in the role. Selected candidates will be invited to discuss their experience, technical approach and expectations with the hiring team.
