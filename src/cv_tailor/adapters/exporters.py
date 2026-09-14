@@ -1,7 +1,18 @@
+"""Markdown to DOCX, PDF and plain text. Callers get bytes, never library objects."""
+
+from io import BytesIO
+
 from bs4 import BeautifulSoup, Tag
 from docx import Document
 from docx.shared import RGBColor
 from markdown import markdown
+
+MARKDOWN_EXTENSIONS = ["extra", "nl2br"]
+
+
+def to_html(markdown_text: str) -> str:
+    """Shared by the DOCX and PDF paths, so both render the same Markdown features."""
+    return markdown(markdown_text, extensions=MARKDOWN_EXTENSIONS)
 
 
 def _parse_inline_elements(element, paragraph):
@@ -30,26 +41,11 @@ def _parse_inline_elements(element, paragraph):
             run.underline = True
 
 
-def to_word(markdown_text):
-    """
-    Convertit du texte Markdown en document Word (.docx).
-
-    Args:
-        markdown_text (str): Le texte au format Markdown à convertir
-
-    Returns:
-        Document: Un objet Document python-docx
-    """
-    # Convertir le markdown en HTML
-    html = markdown(markdown_text, extensions=["extra", "nl2br"])
-
-    # Parser le HTML
-    soup = BeautifulSoup(html, "html.parser")
-
-    # Créer un nouveau document Word
+def _to_document(markdown_text: str) -> Document:
+    """Build a python-docx Document. Kept private: callers want bytes."""
+    soup = BeautifulSoup(to_html(markdown_text), "html.parser")
     doc = Document()
 
-    # Parcourir les éléments HTML et les convertir en éléments Word
     for element in soup.children:
         if not isinstance(element, Tag):
             continue
@@ -71,7 +67,24 @@ def to_word(markdown_text):
                 paragraph = doc.add_paragraph(style="List Number")
                 _parse_inline_elements(li, paragraph)
         elif element.name == "pre":
-            code = element.get_text()
-            doc.add_paragraph(code, style="No Spacing")
+            doc.add_paragraph(element.get_text(), style="No Spacing")
 
     return doc
+
+
+def to_docx(markdown_text: str) -> bytes:
+    buffer = BytesIO()
+    _to_document(markdown_text).save(buffer)
+    return buffer.getvalue()
+
+
+def to_pdf(markdown_text: str) -> bytes:
+    from weasyprint import HTML
+
+    buffer = BytesIO()
+    HTML(string=to_html(markdown_text)).write_pdf(buffer)
+    return buffer.getvalue()
+
+
+def to_txt(markdown_text: str) -> bytes:
+    return markdown_text.encode("utf-8")

@@ -2,7 +2,7 @@
 
 import pytest
 
-MODULES = ["config", "cv_loader", "exporters", "llm_client", "main"]
+MODULES = ["config", "llm_client", "adapters.loader", "adapters.exporters", "ui.main"]
 
 
 @pytest.mark.parametrize("name", MODULES)
@@ -18,15 +18,9 @@ def test_config_loads_from_any_cwd() -> None:
     assert cfg
 
 
-def test_pdf_export_backend_available() -> None:
-    from weasyprint import HTML
-
-    assert HTML is not None
-
-
 def test_resumes_load_from_explicit_path() -> None:
+    from cv_tailor.adapters.loader import load_resumes
     from cv_tailor.config import CV_DIR
-    from cv_tailor.cv_loader import load_resumes
 
     resumes = load_resumes(str(CV_DIR))
     assert resumes

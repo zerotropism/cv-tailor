@@ -1,10 +1,7 @@
-from io import BytesIO
-
 import streamlit as st
-from docx import Document
-from markdown import markdown
 
-from cv_tailor.cv_loader import load_resumes
+from cv_tailor.adapters.exporters import to_docx, to_pdf, to_txt
+from cv_tailor.adapters.loader import extract_text_from_docx, load_resumes
 from cv_tailor.llm_client import rank_cvs, rewrite_cv
 
 
@@ -21,8 +18,6 @@ def init_session_state():
         st.session_state.result = ""
     if "resumes" not in st.session_state:
         st.session_state.resumes = {}
-    if "rankings" not in st.session_state:
-        st.session_state.rankings = []
 
 
 def welcome_screen():
@@ -31,15 +26,6 @@ def welcome_screen():
     if st.button("Commencer"):
         st.session_state.step = "JD_INPUT"
         st.rerun()
-
-
-def extract_text_from_docx(file) -> str:
-    """Extrait le texte d'un fichier Word."""
-    doc = Document(file)
-    full_text = []
-    for paragraph in doc.paragraphs:
-        full_text.append(paragraph.text)
-    return "\n".join(full_text)
 
 
 def jd_input_screen():
@@ -158,49 +144,31 @@ def result_screen():
     st.title("✅ Résultat")
     st.text_area("CV Optimisé", value=st.session_state.result, height=400)
 
-    col1, col2, col3, col4 = st.columns(4)
+    downloads = [
+        (
+            "📥 Télécharger (Word)",
+            to_docx,
+            "cv_optimise.docx",
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        ),
+        ("📥 Télécharger (PDF)", to_pdf, "cv_optimise.pdf", "application/pdf"),
+        ("📥 Télécharger (TXT)", to_txt, "cv_optimise.txt", "text/plain"),
+    ]
+
+    col1, *cols = st.columns(4)
     with col1:
         if st.button("← Retour"):
             st.session_state.step = "CV_SELECTION"
             st.rerun()
-    with col2:
-        # Téléchargement Word
-        from cv_tailor.exporters import to_word
 
-        doc = to_word(st.session_state.result)
-        buffer = BytesIO()
-        doc.save(buffer)
-        buffer.seek(0)
-
-        st.download_button(
-            label="📥 Télécharger (Word)",
-            data=buffer.getvalue(),
-            file_name="cv_optimise.docx",
-            mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-        )
-    with col3:
-        # Téléchargement PDF
-        from weasyprint import HTML
-
-        html_content = markdown(st.session_state.result, extensions=["extra", "nl2br"])
-        pdf_buffer = BytesIO()
-        HTML(string=html_content).write_pdf(pdf_buffer)
-        pdf_buffer.seek(0)
-
-        st.download_button(
-            label="📥 Télécharger (PDF)",
-            data=pdf_buffer.getvalue(),
-            file_name="cv_optimise.pdf",
-            mime="application/pdf",
-        )
-    with col4:
-        # Téléchargement TXT
-        st.download_button(
-            label="📥 Télécharger (TXT)",
-            data=st.session_state.result.encode("utf-8"),
-            file_name="cv_optimise.txt",
-            mime="text/plain",
-        )
+    for column, (label, exporter, filename, mime) in zip(cols, downloads, strict=True):
+        with column:
+            st.download_button(
+                label=label,
+                data=exporter(st.session_state.result),
+                file_name=filename,
+                mime=mime,
+            )
 
 
 def main():
