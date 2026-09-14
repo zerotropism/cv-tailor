@@ -2,7 +2,7 @@
 
 import pytest
 
-MODULES = ["config", "llm_client", "adapters.loader", "adapters.exporters", "ui.main"]
+MODULES = ["config", "adapters.loader", "adapters.exporters", "ui.main"]
 
 
 @pytest.mark.parametrize("name", MODULES)
@@ -26,3 +26,19 @@ def test_resumes_load_from_explicit_path() -> None:
     assert resumes
     assert all(content.strip() for content in resumes.values())
     assert all(name.startswith("CV") for name in resumes)
+
+
+def test_resumes_load_from_the_default_directory() -> None:
+    from cv_tailor.adapters.loader import load_resumes
+
+    resumes = load_resumes()
+    assert resumes
+    assert all(content.strip() for content in resumes.values())
+    assert all(name.startswith("CV") for name in resumes)
+
+
+def test_missing_directory_raises() -> None:
+    from cv_tailor.adapters.loader import load_resumes
+
+    with pytest.raises(FileNotFoundError):
+        load_resumes("/nonexistent")

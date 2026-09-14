@@ -2,7 +2,17 @@ import streamlit as st
 
 from cv_tailor.adapters.exporters import to_docx, to_pdf, to_txt
 from cv_tailor.adapters.loader import extract_text_from_docx, load_resumes
-from cv_tailor.llm_client import rank_cvs, rewrite_cv
+from cv_tailor.adapters.ollama_client import OllamaClient
+from cv_tailor.config import MODEL, PROMPT_RANK, PROMPT_REWRITE
+from cv_tailor.domain.protocols import LLMError, LLMTimeout, LLMUnavailable
+from cv_tailor.domain.ranking import rank
+from cv_tailor.domain.rewriting import rewrite
+
+
+@st.cache_resource
+def get_llm() -> OllamaClient:
+    """One client per session: it holds an httpx connection pool."""
+    return OllamaClient(MODEL)
 
 
 def init_session_state():
@@ -76,25 +86,30 @@ def jd_input_screen():
                 with st.spinner(
                     "🔍 Analyse des CV en cours... Cela peut prendre quelques instants."
                 ):
-                    top_resumes = rank_cvs(st.session_state.job_description, resumes)
+                    rankings = rank(
+                        st.session_state.job_description,
+                        resumes,
+                        get_llm(),
+                        PROMPT_RANK,
+                    )
                 st.session_state.resumes = resumes
-                st.session_state.rankings = top_resumes
+                st.session_state.rankings = rankings
                 st.session_state.step = "RANKING_DISPLAY"
                 st.rerun()
-            except ConnectionError:
+            except LLMUnavailable:
                 st.error(
                     "❌ Impossible de se connecter à Ollama. Vérifiez que le service est démarré."
                 )
-            except TimeoutError:
+            except LLMTimeout:
                 st.error("⏱️ Le traitement a pris trop de temps. Réessayez.")
-            except Exception as e:
-                st.error(f"❌ Erreur lors de l'analyse: {str(e)}")
+            except LLMError as e:
+                st.error(f"❌ Erreur lors de l'analyse: {e}")
 
 
 def ranking_display_screen():
     st.title("📊 Classement des CV")
     for i, ranking in enumerate(st.session_state.rankings, 1):
-        st.write(f"{i}. {ranking['name']} - {ranking['score']} - {ranking['explanation']}")
+        st.write(f"{i}. {ranking.name} - {ranking.score} - {ranking.explanation}")
     col1, col2 = st.columns(2)
     with col1:
         if st.button("← Retour"):
@@ -108,11 +123,11 @@ def ranking_display_screen():
 
 def cv_selection_screen():
     st.title("📄 Sélection du CV")
-    rankings = {r["name"]: r for r in st.session_state.rankings}
+    rankings = {r.name: r for r in st.session_state.rankings}
     selected_name = st.selectbox(
         "Choisissez un CV",
         list(rankings),
-        format_func=lambda name: f"{name} ({rankings[name]['score']})",
+        format_func=lambda name: f"{name} ({rankings[name].score})",
     )
     col1, col2 = st.columns(2)
     with col1:
@@ -124,20 +139,24 @@ def cv_selection_screen():
             st.session_state.selected_cv = selected_name
             try:
                 with st.spinner("✍️ Optimisation du wording du CV en cours..."):
-                    st.session_state.result = rewrite_cv(
+                    rewritten = rewrite(
                         st.session_state.job_description,
+                        selected_name,
                         st.session_state.resumes[selected_name],
+                        get_llm(),
+                        PROMPT_REWRITE,
                     )
+                st.session_state.result = rewritten.content
                 st.session_state.step = "RESULT"
                 st.rerun()
-            except ConnectionError:
+            except LLMUnavailable:
                 st.error(
                     "❌ Impossible de se connecter à Ollama. Vérifiez que le service est démarré."
                 )
-            except TimeoutError:
+            except LLMTimeout:
                 st.error("⏱️ Le traitement a pris trop de temps. Réessayez.")
-            except Exception as e:
-                st.error(f"❌ Erreur lors de l'optimisation: {str(e)}")
+            except LLMError as e:
+                st.error(f"❌ Erreur lors de l'optimisation: {e}")
 
 
 def result_screen():

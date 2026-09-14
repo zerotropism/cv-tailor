@@ -61,3 +61,35 @@ def test_rewrite_returns_markdown_for_the_named_cv() -> None:
     result = rewrite("jd", "cv2", "content", llm, "instructions")
     assert result.name == "cv2"
     assert result.content == "# Tailored\n\n- one"
+
+
+def test_code_fence_is_stripped() -> None:
+    from cv_tailor.domain.rewriting import clean_markdown
+
+    assert clean_markdown("```markdown\n# Title\n\n- item\n```") == "# Title\n\n- item"
+
+
+def test_plain_markdown_is_left_alone() -> None:
+    from cv_tailor.domain.rewriting import clean_markdown
+
+    assert clean_markdown("# Title\n\n- item") == "# Title\n\n- item"
+
+
+def test_inner_fences_are_preserved() -> None:
+    """Only a fence wrapping the whole answer is a wrapper; inner ones are content."""
+    from cv_tailor.domain.rewriting import clean_markdown
+
+    text = "# Title\n\n```python\nprint(1)\n```\n\n- item"
+    assert clean_markdown(text) == text
+
+
+def test_html_entities_are_decoded() -> None:
+    from cv_tailor.domain.rewriting import clean_markdown
+
+    assert clean_markdown("d&#39;intrusion") == "d'intrusion"
+
+
+def test_raw_html_cannot_reach_the_exporters() -> None:
+    from cv_tailor.domain.rewriting import clean_markdown
+
+    assert clean_markdown("&lt;style&gt;x&lt;/style&gt;") == "&lt;style&gt;x&lt;/style&gt;"

@@ -8,6 +8,8 @@ from docx.shared import RGBColor
 from markdown import markdown
 
 MARKDOWN_EXTENSIONS = ["extra", "nl2br"]
+MAX_HEADING_LEVEL = 6
+BULLET_STYLES = {"ul": "List Bullet", "ol": "List Number"}
 
 
 def to_html(markdown_text: str) -> str:
@@ -16,20 +18,14 @@ def to_html(markdown_text: str) -> str:
 
 
 def _parse_inline_elements(element, paragraph):
-    """
-    Parse les éléments inline (gras, italique, liens) et les ajoute au paragraphe.
-
-    Args:
-        element: L'élément BeautifulSoup à parser
-        paragraph: Le paragraphe Word où ajouter le texte
-    """
+    """Add a tag's inline content to a Word paragraph, skipping nested block elements."""
     for content in element.children:
         if isinstance(content, str):
             paragraph.add_run(content)
-        elif content.name == "strong" or content.name == "b":
+        elif content.name in ("strong", "b"):
             run = paragraph.add_run(content.get_text())
             run.bold = True
-        elif content.name == "em" or content.name == "i":
+        elif content.name in ("em", "i"):
             run = paragraph.add_run(content.get_text())
             run.italic = True
         elif content.name == "code":
@@ -41,6 +37,18 @@ def _parse_inline_elements(element, paragraph):
             run.underline = True
 
 
+def _add_list(doc, list_tag, depth: int = 0) -> None:
+    """Add a list and its nested sublists. python-docx styles go up to 'List Bullet 3'."""
+    style = BULLET_STYLES[list_tag.name]
+    suffix = f" {depth + 1}" if depth else ""
+
+    for item in list_tag.find_all("li", recursive=False):
+        paragraph = doc.add_paragraph(style=f"{style}{suffix}")
+        _parse_inline_elements(item, paragraph)
+        for nested in item.find_all(("ul", "ol"), recursive=False):
+            _add_list(doc, nested, depth + 1)
+
+
 def _to_document(markdown_text: str) -> Document:
     """Build a python-docx Document. Kept private: callers want bytes."""
     soup = BeautifulSoup(to_html(markdown_text), "html.parser")
@@ -49,25 +57,16 @@ def _to_document(markdown_text: str) -> Document:
     for element in soup.children:
         if not isinstance(element, Tag):
             continue
-        if element.name == "h1":
-            doc.add_heading(element.get_text(), level=1)
-        elif element.name == "h2":
-            doc.add_heading(element.get_text(), level=2)
-        elif element.name == "h3":
-            doc.add_heading(element.get_text(), level=3)
-        elif element.name == "p":
-            paragraph = doc.add_paragraph()
-            _parse_inline_elements(element, paragraph)
-        elif element.name == "ul":
-            for li in element.find_all("li", recursive=False):
-                paragraph = doc.add_paragraph(style="List Bullet")
-                _parse_inline_elements(li, paragraph)
-        elif element.name == "ol":
-            for li in element.find_all("li", recursive=False):
-                paragraph = doc.add_paragraph(style="List Number")
-                _parse_inline_elements(li, paragraph)
+        if element.name in BULLET_STYLES:
+            _add_list(doc, element)
         elif element.name == "pre":
             doc.add_paragraph(element.get_text(), style="No Spacing")
+        elif element.name and element.name.startswith("h") and element.name[1:].isdigit():
+            # h4 and beyond exist in Markdown but not as Word styles: clamp to the deepest
+            doc.add_heading(element.get_text(), level=min(int(element.name[1:]), MAX_HEADING_LEVEL))
+        else:
+            paragraph = doc.add_paragraph()
+            _parse_inline_elements(element, paragraph)
 
     return doc
 
