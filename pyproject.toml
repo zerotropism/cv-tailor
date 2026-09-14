@@ -1,19 +1,28 @@
 [project]
-name = "cvbooster"
+name = "cv-tailor"
 version = "0.1.0"
-description = "demo cv booster & matcher to JD"
+description = "Rank a batch of CVs against a job description, then tailor the best match"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "beautifulsoup4>=4.14.3",
+    "httpx>=0.28.1",
     "markdown>=3.10.2",
     "ollama>=0.6.1",
+    "pydantic>=2.10",
     "python-docx>=1.2.0",
     "python-dotenv>=1.2.1",
     "pyyaml>=6.0.3",
     "streamlit>=1.54.0",
     "weasyprint>=68.1",
 ]
+
+[project.scripts]
+cv-tailor = "cv_tailor.app:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
 [dependency-groups]
 dev = [

@@ -1,11 +1,18 @@
-from io import BytesIO
-
 import streamlit as st
-from docx import Document
-from markdown import markdown
 
-from cv_loader import load_resumes
-from llm_client import rank_cvs, rewrite_cv
+from cv_tailor.adapters.exporters import to_docx, to_pdf, to_txt
+from cv_tailor.adapters.loader import extract_text_from_docx, load_resumes
+from cv_tailor.adapters.ollama_client import OllamaClient
+from cv_tailor.config import MODEL, PROMPT_RANK, PROMPT_REWRITE
+from cv_tailor.domain.protocols import LLMError, LLMTimeout, LLMUnavailable
+from cv_tailor.domain.ranking import rank
+from cv_tailor.domain.rewriting import rewrite
+
+
+@st.cache_resource
+def get_llm() -> OllamaClient:
+    """One client per session: it holds an httpx connection pool."""
+    return OllamaClient(MODEL)
 
 
 def init_session_state():
@@ -21,8 +28,6 @@ def init_session_state():
         st.session_state.result = ""
     if "resumes" not in st.session_state:
         st.session_state.resumes = {}
-    if "rankings" not in st.session_state:
-        st.session_state.rankings = []
 
 
 def welcome_screen():
@@ -31,15 +36,6 @@ def welcome_screen():
     if st.button("Commencer"):
         st.session_state.step = "JD_INPUT"
         st.rerun()
-
-
-def extract_text_from_docx(file) -> str:
-    """Extrait le texte d'un fichier Word."""
-    doc = Document(file)
-    full_text = []
-    for paragraph in doc.paragraphs:
-        full_text.append(paragraph.text)
-    return "\n".join(full_text)
 
 
 def jd_input_screen():
@@ -90,25 +86,30 @@ def jd_input_screen():
                 with st.spinner(
                     "🔍 Analyse des CV en cours... Cela peut prendre quelques instants."
                 ):
-                    top_resumes = rank_cvs(st.session_state.job_description, resumes)
+                    rankings = rank(
+                        st.session_state.job_description,
+                        resumes,
+                        get_llm(),
+                        PROMPT_RANK,
+                    )
                 st.session_state.resumes = resumes
-                st.session_state.rankings = top_resumes
+                st.session_state.rankings = rankings
                 st.session_state.step = "RANKING_DISPLAY"
                 st.rerun()
-            except ConnectionError:
+            except LLMUnavailable:
                 st.error(
                     "❌ Impossible de se connecter à Ollama. Vérifiez que le service est démarré."
                 )
-            except TimeoutError:
+            except LLMTimeout:
                 st.error("⏱️ Le traitement a pris trop de temps. Réessayez.")
-            except Exception as e:
-                st.error(f"❌ Erreur lors de l'analyse: {str(e)}")
+            except LLMError as e:
+                st.error(f"❌ Erreur lors de l'analyse: {e}")
 
 
 def ranking_display_screen():
     st.title("📊 Classement des CV")
     for i, ranking in enumerate(st.session_state.rankings, 1):
-        st.write(f"{i}. {ranking['name']} - {ranking['score']} - {ranking['explanation']}")
+        st.write(f"{i}. {ranking.name} - {ranking.score} - {ranking.explanation}")
     col1, col2 = st.columns(2)
     with col1:
         if st.button("← Retour"):
@@ -122,11 +123,11 @@ def ranking_display_screen():
 
 def cv_selection_screen():
     st.title("📄 Sélection du CV")
-    rankings = {r["name"]: r for r in st.session_state.rankings}
+    rankings = {r.name: r for r in st.session_state.rankings}
     selected_name = st.selectbox(
         "Choisissez un CV",
         list(rankings),
-        format_func=lambda name: f"{name} ({rankings[name]['score']})",
+        format_func=lambda name: f"{name} ({rankings[name].score})",
     )
     col1, col2 = st.columns(2)
     with col1:
@@ -138,69 +139,55 @@ def cv_selection_screen():
             st.session_state.selected_cv = selected_name
             try:
                 with st.spinner("✍️ Optimisation du wording du CV en cours..."):
-                    st.session_state.result = rewrite_cv(
+                    rewritten = rewrite(
                         st.session_state.job_description,
+                        selected_name,
                         st.session_state.resumes[selected_name],
+                        get_llm(),
+                        PROMPT_REWRITE,
                     )
+                st.session_state.result = rewritten.content
                 st.session_state.step = "RESULT"
                 st.rerun()
-            except ConnectionError:
+            except LLMUnavailable:
                 st.error(
                     "❌ Impossible de se connecter à Ollama. Vérifiez que le service est démarré."
                 )
-            except TimeoutError:
+            except LLMTimeout:
                 st.error("⏱️ Le traitement a pris trop de temps. Réessayez.")
-            except Exception as e:
-                st.error(f"❌ Erreur lors de l'optimisation: {str(e)}")
+            except LLMError as e:
+                st.error(f"❌ Erreur lors de l'optimisation: {e}")
 
 
 def result_screen():
     st.title("✅ Résultat")
     st.text_area("CV Optimisé", value=st.session_state.result, height=400)
 
-    col1, col2, col3, col4 = st.columns(4)
+    downloads = [
+        (
+            "📥 Télécharger (Word)",
+            to_docx,
+            "cv_optimise.docx",
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        ),
+        ("📥 Télécharger (PDF)", to_pdf, "cv_optimise.pdf", "application/pdf"),
+        ("📥 Télécharger (TXT)", to_txt, "cv_optimise.txt", "text/plain"),
+    ]
+
+    col1, *cols = st.columns(4)
     with col1:
         if st.button("← Retour"):
             st.session_state.step = "CV_SELECTION"
             st.rerun()
-    with col2:
-        # Téléchargement Word
-        from exporters import to_word
 
-        doc = to_word(st.session_state.result)
-        buffer = BytesIO()
-        doc.save(buffer)
-        buffer.seek(0)
-
-        st.download_button(
-            label="📥 Télécharger (Word)",
-            data=buffer.getvalue(),
-            file_name="cv_optimise.docx",
-            mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-        )
-    with col3:
-        # Téléchargement PDF
-        from weasyprint import HTML
-
-        html_content = markdown(st.session_state.result, extensions=["extra", "nl2br"])
-        pdf_buffer = BytesIO()
-        HTML(string=html_content).write_pdf(pdf_buffer)
-        pdf_buffer.seek(0)
-
-        st.download_button(
-            label="📥 Télécharger (PDF)",
-            data=pdf_buffer.getvalue(),
-            file_name="cv_optimise.pdf",
-            mime="application/pdf",
-        )
-    with col4:
-        # Téléchargement TXT
-        st.download_button(
-            label="📥 Télécharger (TXT)",
-            data=st.session_state.result.encode("utf-8"),
-            file_name="cv_optimise.txt",
-            mime="text/plain",
-        )
+    for column, (label, exporter, filename, mime) in zip(cols, downloads, strict=True):
+        with column:
+            st.download_button(
+                label=label,
+                data=exporter(st.session_state.result),
+                file_name=filename,
+                mime=mime,
+            )
 
 
 def main():

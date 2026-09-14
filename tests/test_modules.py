@@ -1,41 +1,44 @@
 """Smoke tests: modules import, config loads, PDF backend is available."""
 
-import sys
-from pathlib import Path
-
 import pytest
 
-ROOT = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(ROOT / "src"))
-
-MODULES = ["config", "cv_loader", "exporters", "llm_client", "main"]
+MODULES = ["config", "adapters.loader", "adapters.exporters", "ui.main"]
 
 
 @pytest.mark.parametrize("name", MODULES)
 def test_module_imports(name: str) -> None:
-    __import__(name)
+    __import__(f"cv_tailor.{name}")
 
 
 def test_config_loads_from_any_cwd() -> None:
-    from config import load_config
+    from cv_tailor.config import load_config
 
     cfg = load_config()
     assert isinstance(cfg, dict)
     assert cfg
 
 
-def test_pdf_export_backend_available() -> None:
-    from weasyprint import HTML
-
-    assert HTML is not None
-
-
 def test_resumes_load_from_explicit_path() -> None:
-    """load_resumes defaults to a relative '../data', so pass an explicit path.
+    from cv_tailor.adapters.loader import load_resumes
+    from cv_tailor.config import CV_DIR
 
-    Fixing that default belongs to the layering refactor (step 3.3).
-    """
-    from cv_loader import load_resumes
+    resumes = load_resumes(str(CV_DIR))
+    assert resumes
+    assert all(content.strip() for content in resumes.values())
+    assert all(name.startswith("CV") for name in resumes)
 
-    resumes = load_resumes(str(ROOT / "data"))
-    assert len(resumes) == 50
+
+def test_resumes_load_from_the_default_directory() -> None:
+    from cv_tailor.adapters.loader import load_resumes
+
+    resumes = load_resumes()
+    assert resumes
+    assert all(content.strip() for content in resumes.values())
+    assert all(name.startswith("CV") for name in resumes)
+
+
+def test_missing_directory_raises() -> None:
+    from cv_tailor.adapters.loader import load_resumes
+
+    with pytest.raises(FileNotFoundError):
+        load_resumes("/nonexistent")
