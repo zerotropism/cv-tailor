@@ -18,7 +18,7 @@ dependencies = [
 ]
 
 [project.scripts]
-cv-tailor = "cv_tailor.app:main"
+cv-tailor = "cv_tailor.ui.launch:main"
 
 [build-system]
 requires = ["hatchling"]
