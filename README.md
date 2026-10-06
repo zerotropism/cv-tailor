@@ -14,7 +14,7 @@ Requires Python 3.12+, [uv](https://docs.astral.sh/uv/) and a running Ollama ser
 ```bash
 uv sync
 ollama pull llama3.2:3b
-uv run streamlit run src/cv_tailor/ui/main.py
+uv run cv-tailor
 ```
 
 ## Configuration
@@ -23,7 +23,7 @@ uv run streamlit run src/cv_tailor/ui/main.py
 which is what makes comparing models practical:
 
 ```bash
-CV_TAILOR_MODEL=qwen3:8b uv run streamlit run src/cv_tailor/ui/main.py
+CV_TAILOR_MODEL=qwen3:8b uv run cv-tailor
 ```
 
 CVs are read from `data/cvs/` (one `.txt` per CV); `data/jobs/` holds sample job descriptions,

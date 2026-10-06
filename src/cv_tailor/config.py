@@ -22,7 +22,7 @@ def load_config(config_path: str | Path | None = None) -> dict[str, Any]:
 
 _config = load_config()
 
-# CVBOOSTER_MODEL wins over config.yaml: comparing models should not need a commit
+# CV_TAILOR_MODEL wins over config.yaml: comparing models should not need a commit
 MODEL: str = os.getenv("CV_TAILOR_MODEL", _config.get("model", "llama3.2:3b"))
 PROMPT_RANK: str = _config.get("prompts", {}).get("rank", "")
 PROMPT_REWRITE: str = _config.get("prompts", {}).get("rewrite", "")
