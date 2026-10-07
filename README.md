@@ -47,6 +47,7 @@ src/cv_tailor/
 ├── config.py
 ├── service.py         CVTailor: documents by name, rank and rewrite, shared by every adapter
 ├── server.py          MCP adapter: tools and resource templates, model calls under a timeout
+├── api.py             HTTP adapter: FastAPI routes over the same service
 └── ui/
     ├── main.py        Streamlit screens
     └── launch.py      `cv-tailor` console script
@@ -68,7 +69,7 @@ suite run with no server: `FakeLLM` implements the same protocol and returns can
 
 Documents are addressed by name and looked up among the `.txt` files of `data/cvs/` and
 `data/jobs/`: a name such as `../config` matches nothing and is refused. Every model call runs in
-a worker thread and is cut off after `CV_TAILOR_TOOL_TIMEOUT` seconds (600 by default: ranking
+a worker thread and is cut off after `CV_TAILOR_TIMEOUT` seconds (600 by default: ranking
 calls the model once per CV). With [mcp-servers-cli](https://pypi.org/project/mcp-servers-cli/):
 
 ```bash
@@ -76,6 +77,30 @@ uvx mcp-servers-cli call rank_cvs '{"job_name": "JD_Network_Engineer"}' \
   --stdio "uv run --directory $PWD cv-tailor-mcp"
 uvx mcp-servers-cli agent "Which three CVs fit JD_Network_Engineer best, and why?" \
   --model qwen3.5:4b-mlx --stdio "uv run --directory $PWD cv-tailor-mcp"
+```
+
+## HTTP API
+
+`cv-tailor-api` serves the same service with FastAPI on `127.0.0.1:8000`
+(`CV_TAILOR_API_HOST`, `CV_TAILOR_API_PORT`). It has no authentication: keep it local.
+
+| Method | Path | Body | Returns |
+|---|---|---|---|
+| `GET` | `/health` | | `{"status": "ok"}` |
+| `GET` | `/cvs`, `/jobs` | | document names |
+| `GET` | `/cvs/{name}`, `/jobs/{name}` | | the document as text, 404 if unknown |
+| `POST` | `/rank` | `job_name` or `job_description`, `top_n` | rankings, best first |
+| `POST` | `/rewrite` | `cv_name`, `job_name` or `job_description` | the rewritten CV |
+
+A request with both or neither job field is rejected with 422. Model failures map to 503 when
+Ollama is unreachable, 504 after `CV_TAILOR_TIMEOUT` seconds and 502 for any other model error.
+The interactive documentation is at `/docs`.
+
+```bash
+uv run cv-tailor-api &
+curl -s localhost:8000/jobs
+curl -s -X POST localhost:8000/rank -H "Content-Type: application/json" \
+  -d '{"job_name": "JD_Network_Engineer", "top_n": 3}'
 ```
 
 ## Prompt handling
@@ -110,7 +135,7 @@ uv run pytest
 No Ollama needed: the domain runs against `FakeLLM`, the adapter tests exercise message
 construction and error translation without a server, the exporter tests check that DOCX, PDF
 and TXT carry the same content, and the service and MCP tests run on small temporary data
-directories through the in-memory FastMCP client.
+directories through the in-memory FastMCP client and FastAPI's `TestClient`.
 
 ## Dependencies
 
@@ -125,3 +150,4 @@ directories through the in-memory FastMCP client.
 | `markdown`, `beautifulsoup4` | Markdown to HTML  |
 | `pyyaml`       | Configuration                     |
 | `fastmcp`      | MCP server                        |
+| `fastapi`, `uvicorn` | HTTP API                    |
