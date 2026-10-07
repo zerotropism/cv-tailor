@@ -6,6 +6,7 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "beautifulsoup4>=4.14.3",
+    "fastapi>=0.142",
     "fastmcp>=4,<5",
     "httpx>=0.28.1",
     "markdown>=3.10.2",
@@ -15,12 +16,14 @@ dependencies = [
     "python-dotenv>=1.2.1",
     "pyyaml>=6.0.3",
     "streamlit>=1.54.0",
+    "uvicorn>=0.30",
     "weasyprint>=68.1",
 ]
 
 [project.scripts]
 cv-tailor = "cv_tailor.ui.launch:main"
 cv-tailor-mcp = "cv_tailor.server:main"
+cv-tailor-api = "cv_tailor.api:main"
 
 [build-system]
 requires = ["hatchling"]
