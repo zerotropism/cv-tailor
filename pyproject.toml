@@ -6,6 +6,7 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "beautifulsoup4>=4.14.3",
+    "fastmcp>=4,<5",
     "httpx>=0.28.1",
     "markdown>=3.10.2",
     "ollama>=0.6.1",
@@ -19,6 +20,7 @@ dependencies = [
 
 [project.scripts]
 cv-tailor = "cv_tailor.ui.launch:main"
+cv-tailor-mcp = "cv_tailor.server:main"
 
 [build-system]
 requires = ["hatchling"]
@@ -27,5 +29,9 @@ build-backend = "hatchling.build"
 [dependency-groups]
 dev = [
     "pytest>=9.1.1",
+    "pytest-asyncio>=1.4.0",
     "ruff>=0.16.6",
 ]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
