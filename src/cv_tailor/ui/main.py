@@ -31,7 +31,7 @@ def init_session_state():
 
 
 def welcome_screen():
-    st.title("🚀 CV Booster")
+    st.title("🚀 CV Tailor")
     st.write("Optimisez vos CV selon les descriptions de poste")
     if st.button("Commencer"):
         st.session_state.step = "JD_INPUT"
@@ -191,7 +191,7 @@ def result_screen():
 
 
 def main():
-    st.set_page_config(page_title="CV Booster", page_icon="🚀", layout="wide")
+    st.set_page_config(page_title="CV Tailor", page_icon="🚀", layout="wide")
     init_session_state()
 
     screens = {
