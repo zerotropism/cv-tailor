@@ -48,6 +48,7 @@ src/cv_tailor/
 ├── service.py         CVTailor: documents by name, rank and rewrite, shared by every adapter
 ├── server.py          MCP adapter: tools and resource templates, model calls under a timeout
 ├── api.py             HTTP adapter: FastAPI routes over the same service
+├── evaluation/        metrics, BM25, strategies, and the cv-tailor-eval CLI
 └── ui/
     ├── main.py        Streamlit screens
     └── launch.py      `cv-tailor` console script
@@ -125,6 +126,48 @@ Ranking makes one model call per CV, sequentially bounded by a semaphore. On a c
 local machine the concurrency does not help much — measured 25.5s at concurrency 1 versus 22.1s
 at concurrency 4 on 8 CVs with `llama3.2:3b`. The semaphore is there to cap queued requests, not
 to speed them up. Expect roughly 3 minutes for 50 CVs on that setup.
+
+## Evaluation
+
+`cv-tailor-eval` measures how well a ranking strategy puts the right CVs first.
+
+Reference. Each CV name ends with its category (`CV_021_network`) and each sample job targets
+one category, so a CV is relevant to a job when the categories match: 12 or 13 relevant CVs out
+of 50 per job, with no manual labelling. The category is a proxy: a network profile may be
+partly relevant to an infrastructure job.
+
+Metrics. Relevance is binary, so the harness reports ranking metrics rather than a rank
+correlation, which is ill-defined when almost every pair is tied: mean average precision (MAP),
+precision in the first 5 (P@5) and NDCG@10, averaged over the four jobs; the spread is the
+standard deviation of MAP across runs. It also counts model calls, seconds per job, and how
+many CVs share the best score, since tied CVs keep their file order.
+
+Strategies.
+
+| Strategy | Model calls per job | What it does |
+|---|---|---|
+| `lexical` | 0 | BM25 between the job description and each CV, accents and case ignored |
+| `llm` | 50 | the model scores every CV, as the UI, the MCP server and the API do |
+| `hybrid` | `--preselect`, 15 by default | BM25 shortlist, then the model reorders it |
+
+```bash
+uv run cv-tailor-eval --strategies lexical
+uv run cv-tailor-eval --models llama3.2:3b qwen3.5:4b-mlx --runs 3
+```
+
+Each outcome (strategy, model, run, job, full ranking, metrics, timing) is appended to
+`evaluation/outcomes-<time>.jsonl` as it is measured, so an interrupted run keeps its data; the
+table is printed and written to `evaluation/summary-<time>.md`.
+
+Measured on the bundled data:
+
+| Strategy | Model | Runs | MAP | P@5 | NDCG@10 | Model calls / job |
+|---|---|---|---|---|---|---|
+| lexical | - | 1 | 0.907 | 0.900 | 0.918 | 0 |
+
+The sample CVs and jobs were generated with a shared vocabulary, which favours a lexical
+method; real CVs, with synonyms and mixed languages, would narrow the gap. The harness measures
+ranking only: whether a rewrite stays faithful to the CV is not evaluated.
 
 ## Tests
 
