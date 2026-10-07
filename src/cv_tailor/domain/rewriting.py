@@ -7,14 +7,32 @@ from cv_tailor.domain.models import RewrittenCV
 from cv_tailor.domain.prompting import job_and_cv
 from cv_tailor.domain.protocols import LLMClient
 
-# Small models wrap their answer in a code fence despite being told not to
-FENCE = re.compile(r"\A\s*```[a-zA-Z]*\n(?P<body>.*?)\n?```\s*\Z", re.DOTALL)
+# Small models wrap their answer in a code fence despite being told not to, sometimes leave it
+# open, and sometimes add a note after it
+OPENING_FENCE = re.compile(r"\A```[a-zA-Z]*[ \t]*\n")
+CLOSING_FENCE = re.compile(r"^```[ \t]*$", re.MULTILINE)
+
+
+def strip_wrapping_fence(text: str) -> str:
+    """The answer without the fence around it, nor anything the model wrote after that fence.
+
+    Only an answer that starts with a fence is wrapped. Its body ends at the last closing fence,
+    so fenced blocks inside it are kept; an unclosed wrapper loses its opening line only.
+    """
+    text = text.strip()
+    opening = OPENING_FENCE.match(text)
+    if opening is None:
+        return text
+    body = text[opening.end() :]
+    closings = list(CLOSING_FENCE.finditer(body))
+    if closings:
+        body = body[: closings[-1].start()]
+    return body.strip()
 
 
 def clean_markdown(text: str) -> str:
     """Strip a wrapping code fence, decode HTML entities, neutralise raw HTML tags."""
-    match = FENCE.match(text.strip())
-    body = match.group("body") if match else text.strip()
+    body = strip_wrapping_fence(text)
 
     # Models emit entities such as &#39; in otherwise plain text
     body = html.unescape(body)

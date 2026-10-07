@@ -69,6 +69,27 @@ def test_code_fence_is_stripped() -> None:
     assert clean_markdown("```markdown\n# Title\n\n- item\n```") == "# Title\n\n- item"
 
 
+def test_a_note_after_the_closing_fence_is_dropped() -> None:
+    """Observed with llama3.2:3b: the fenced CV, then a note about what the model changed."""
+    from cv_tailor.domain.rewriting import clean_markdown
+
+    answer = "```markdown\n# Title\n\n- QoS\n```\n\nNote : J'ai mis l'accent sur le réseau.\n"
+    assert clean_markdown(answer) == "# Title\n\n- QoS"
+
+
+def test_an_unclosed_fence_loses_its_opening_line() -> None:
+    from cv_tailor.domain.rewriting import clean_markdown
+
+    assert clean_markdown("```markdown\n# Title\n\n- item") == "# Title\n\n- item"
+
+
+def test_fences_inside_a_wrapped_answer_are_kept() -> None:
+    from cv_tailor.domain.rewriting import clean_markdown
+
+    answer = "```markdown\n# Title\n\n```bash\nping\n```\n\n- item\n```\nNote"
+    assert clean_markdown(answer) == "# Title\n\n```bash\nping\n```\n\n- item"
+
+
 def test_plain_markdown_is_left_alone() -> None:
     from cv_tailor.domain.rewriting import clean_markdown
 
