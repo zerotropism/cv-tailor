@@ -24,6 +24,7 @@ dependencies = [
 cv-tailor = "cv_tailor.ui.launch:main"
 cv-tailor-mcp = "cv_tailor.server:main"
 cv-tailor-api = "cv_tailor.api:main"
+cv-tailor-eval = "cv_tailor.evaluation.cli:main"
 
 [build-system]
 requires = ["hatchling"]
