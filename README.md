@@ -45,11 +45,38 @@ src/cv_tailor/
 │   ├── loader.py          reads CVs and .docx job descriptions
 │   └── exporters.py       Markdown to DOCX, PDF, TXT
 ├── config.py
-└── ui/main.py         Streamlit screens
+├── service.py         CVTailor: documents by name, rank and rewrite, shared by every adapter
+├── server.py          MCP adapter: tools and resource templates, model calls under a timeout
+└── ui/
+    ├── main.py        Streamlit screens
+    └── launch.py      `cv-tailor` console script
 ```
 
 The domain depends on a `LLMClient` protocol, never on Ollama. That is what lets the whole test
 suite run with no server: `FakeLLM` implements the same protocol and returns canned answers.
+
+## MCP server
+
+`cv-tailor-mcp` serves the same operations over stdio, through the shared `CVTailor` service.
+
+| Kind | Name | Returns |
+|---|---|---|
+| Tool | `list_cvs()`, `list_jobs()` | document names |
+| Tool | `rank_cvs(job_name or job_description, top_n=3)` | the best CVs, scored and explained |
+| Tool | `rewrite_cv(cv_name, job_name or job_description)` | the CV reworded in Markdown |
+| Resource template | `cv://{name}`, `job://{name}` | the text of one document |
+
+Documents are addressed by name and looked up among the `.txt` files of `data/cvs/` and
+`data/jobs/`: a name such as `../config` matches nothing and is refused. Every model call runs in
+a worker thread and is cut off after `CV_TAILOR_TOOL_TIMEOUT` seconds (600 by default: ranking
+calls the model once per CV). With [mcp-servers-cli](https://pypi.org/project/mcp-servers-cli/):
+
+```bash
+uvx mcp-servers-cli call rank_cvs '{"job_name": "JD_Network_Engineer"}' \
+  --stdio "uv run --directory $PWD cv-tailor-mcp"
+uvx mcp-servers-cli agent "Which three CVs fit JD_Network_Engineer best, and why?" \
+  --model qwen3.5:4b-mlx --stdio "uv run --directory $PWD cv-tailor-mcp"
+```
 
 ## Prompt handling
 
@@ -81,8 +108,9 @@ uv run pytest
 ```
 
 No Ollama needed: the domain runs against `FakeLLM`, the adapter tests exercise message
-construction and error translation without a server, and the exporter tests check that DOCX, PDF
-and TXT carry the same content.
+construction and error translation without a server, the exporter tests check that DOCX, PDF
+and TXT carry the same content, and the service and MCP tests run on small temporary data
+directories through the in-memory FastMCP client.
 
 ## Dependencies
 
@@ -96,3 +124,4 @@ and TXT carry the same content.
 | `weasyprint`   | PDF export                        |
 | `markdown`, `beautifulsoup4` | Markdown to HTML  |
 | `pyyaml`       | Configuration                     |
+| `fastmcp`      | MCP server                        |
