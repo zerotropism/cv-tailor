@@ -1,13 +1,11 @@
 """MCP adapter: the service the UI uses, exposed as tools and resource templates.
 
-Model calls block, so each runs in a worker thread under a timeout: a slow model can neither
-stall the event loop nor hold a client indefinitely.
+Model calls run through run_bounded: a slow model can neither stall the event loop nor hold a
+client indefinitely.
 """
 
-import asyncio
 import os
 from collections.abc import Callable
-from typing import TypeVar
 
 from fastmcp import FastMCP
 from fastmcp.exceptions import ToolError
@@ -17,23 +15,24 @@ from cv_tailor.config import MODEL
 from cv_tailor.domain.models import Ranking, RewrittenCV
 from cv_tailor.domain.protocols import LLMError, LLMUnavailable
 from cv_tailor.domain.ranking import DEFAULT_TOP_N
-from cv_tailor.service import CVTailor, UnknownDocumentError
+from cv_tailor.service import (
+    DEFAULT_TIMEOUT_SECONDS,
+    TIMEOUT_ENV_VAR,
+    CVTailor,
+    UnknownDocumentError,
+    run_bounded,
+)
 
-TIMEOUT_ENV_VAR = "CV_TAILOR_TOOL_TIMEOUT"
-# Ranking makes one model call per CV: about 3 minutes for 50 CVs with llama3.2:3b
-DEFAULT_TIMEOUT_SECONDS = 600.0
 READ_ONLY = {"readOnlyHint": True, "openWorldHint": False}
-
-T = TypeVar("T")
 
 
 def create_server(service: CVTailor, timeout: float = DEFAULT_TIMEOUT_SECONDS) -> FastMCP:
     """Build a server around one service. Tests pass a service with a fake model."""
     mcp = FastMCP("cv-tailor")
 
-    async def run(operation: Callable[[], T]) -> T:
+    async def run[T](operation: Callable[[], T]) -> T:
         try:
-            return await asyncio.wait_for(asyncio.to_thread(operation), timeout)
+            return await run_bounded(operation, timeout)
         except TimeoutError:
             raise ToolError(f"the model did not answer within {timeout:g}s") from None
         except LLMUnavailable as exc:

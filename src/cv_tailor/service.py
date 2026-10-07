@@ -4,6 +4,8 @@ Documents are addressed by name, never by path: a name is looked up among the fi
 present, so no request can reach outside the data directories.
 """
 
+import asyncio
+from collections.abc import Callable
 from pathlib import Path
 
 from cv_tailor.config import CV_DIR, JOB_DIR, PROMPT_RANK, PROMPT_REWRITE
@@ -11,6 +13,20 @@ from cv_tailor.domain.models import Ranking, RewrittenCV
 from cv_tailor.domain.protocols import LLMClient
 from cv_tailor.domain.ranking import DEFAULT_TOP_N, rank
 from cv_tailor.domain.rewriting import rewrite
+
+TIMEOUT_ENV_VAR = "CV_TAILOR_TIMEOUT"
+# Ranking makes one model call per CV: about 3 minutes for 50 CVs with llama3.2:3b
+DEFAULT_TIMEOUT_SECONDS = 600.0
+
+
+async def run_bounded[T](operation: Callable[[], T], timeout: float) -> T:
+    """Run a blocking operation in a worker thread and stop waiting after `timeout` seconds.
+
+    Model calls block, and the Ollama client runs its own event loop for batches: off the
+    caller's loop, they stall neither an MCP server nor an HTTP server. The thread itself
+    cannot be interrupted; it finishes in the background. Raises TimeoutError.
+    """
+    return await asyncio.wait_for(asyncio.to_thread(operation), timeout)
 
 
 class UnknownDocumentError(LookupError):
