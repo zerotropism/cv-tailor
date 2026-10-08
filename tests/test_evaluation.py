@@ -5,6 +5,7 @@ import re
 import pytest
 
 from cv_tailor.adapters.fake import FakeLLM
+from cv_tailor.domain.lexical import lexical_ranking, tokens
 from cv_tailor.evaluation.harness import (
     JOB_CATEGORIES,
     evaluate,
@@ -13,7 +14,6 @@ from cv_tailor.evaluation.harness import (
     run_strategy,
     summarise,
 )
-from cv_tailor.evaluation.lexical import lexical_ranking, tokens
 from cv_tailor.evaluation.metrics import average_precision, ndcg_at, precision_at, tied_with_top
 from cv_tailor.service import CVTailor
 

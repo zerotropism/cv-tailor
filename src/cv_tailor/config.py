@@ -26,3 +26,5 @@ _config = load_config()
 MODEL: str = os.getenv("CV_TAILOR_MODEL", _config.get("model", "llama3.2:3b"))
 PROMPT_RANK: str = _config.get("prompts", {}).get("rank", "")
 PROMPT_REWRITE: str = _config.get("prompts", {}).get("rewrite", "")
+# How many CVs BM25 keeps for the model to score; 0 lets the model score every CV
+PRESELECT: int | None = _config.get("preselect", 15) or None

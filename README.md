@@ -37,7 +37,8 @@ src/cv_tailor/
 │   ├── models.py      Ranking, RewrittenCV
 │   ├── protocols.py   LLMClient, and the error types the UI catches
 │   ├── prompting.py   delimited data blocks
-│   ├── ranking.py     rank(jd, cvs, llm, instructions)
+│   ├── lexical.py     BM25, for the preselection
+│   ├── ranking.py     rank(jd, cvs, llm, instructions, top_n, preselect)
 │   └── rewriting.py   rewrite(...) and Markdown cleanup
 ├── adapters/
 │   ├── ollama_client.py   structured outputs, timeout, bounded concurrency
@@ -48,7 +49,7 @@ src/cv_tailor/
 ├── service.py         CVTailor: documents by name, rank and rewrite, shared by every adapter
 ├── server.py          MCP adapter: tools and resource templates, model calls under a timeout
 ├── api.py             HTTP adapter: FastAPI routes over the same service
-├── evaluation/        metrics, BM25, strategies, and the cv-tailor-eval CLI
+├── evaluation/        metrics, strategies, and the cv-tailor-eval CLI
 └── ui/
     ├── main.py        Streamlit screens
     └── launch.py      `cv-tailor` console script
@@ -126,10 +127,12 @@ without reasoning, such as `llama3.2:3b`, accept the setting.
 
 ## Performance
 
-Ranking makes one model call per CV, sequentially bounded by a semaphore. On a compute-bound
-local machine the concurrency does not help much — measured 25.5s at concurrency 1 versus 22.1s
-at concurrency 4 on 8 CVs with `llama3.2:3b`. The semaphore is there to cap queued requests, not
-to speed them up. Expect roughly 3 minutes for 50 CVs on that setup.
+Ranking first keeps the 15 CVs closest to the job by BM25 (`preselect` in `config.yaml`, 0 to
+score every CV), then makes one model call per kept CV, bounded by a semaphore. On a
+compute-bound local machine the concurrency does not help much — measured 25.5s at concurrency
+1 versus 22.1s at concurrency 4 on 8 CVs with `llama3.2:3b`. The semaphore is there to cap
+queued requests, not to speed them up. Measured per job on the 50 sample CVs: about 53 seconds
+with `llama3.2:3b` and 84 with `qwen3.5:4b-mlx`, against 162 and 268 without the preselection.
 
 ## Evaluation
 
@@ -170,9 +173,27 @@ table is printed and written to `evaluation/summary-<time>.md`.
 
 Measured on the bundled data:
 
-| Strategy | Model | Runs | MAP | P@5 | NDCG@10 | Model calls / job |
-|---|---|---|---|---|---|---|
-| lexical | - | 1 | 0.907 | 0.900 | 0.918 | 0 |
+| Strategy | Model | Runs | MAP | ± | P@5 | NDCG@10 | Model calls / job | s / job |
+|---|---|---|---|---|---|---|---|---|
+| lexical | - | 1 | 0.907 | 0.000 | 0.900 | 0.918 | 0 | 0 |
+| llm | llama3.2:3b | 3 | 0.810 | 0.032 | 0.883 | 0.848 | 50 | 162.4 |
+| hybrid | llama3.2:3b | 3 | 0.955 | 0.014 | 0.967 | 0.962 | 15 | 52.8 |
+| llm | qwen3.5:4b-mlx | 3 | 0.938 | 0.018 | 0.967 | 0.940 | 50 | 268.3 |
+| hybrid | qwen3.5:4b-mlx | 3 | 0.974 | 0.002 | 1.000 | 1.000 | 15 | 83.9 |
+
+Run on 8 October 2026 with `think=False`, a 120-second timeout per call and a preselection of
+15, on an Apple Silicon Mac; every outcome is in `evaluation/`. What the table shows:
+
+- The preselection beats the model alone with both models, with a third of the calls: it is the
+  default ranking, in the UI, the MCP server and the API.
+- `llama3.2:3b` alone ranks worse than BM25 and is unstable: the infrastructure job's average
+  precision went from 0.48 to 0.88 across runs. With the preselection it outranks
+  `qwen3.5:4b-mlx` alone in a fifth of the time.
+- The preselection bounds the result: a relevant CV that BM25 leaves out of the 15 cannot come
+  back. On the infrastructure job, where BM25 is weakest (0.78), it caps both models at 0.90,
+  while `qwen3.5:4b-mlx` alone reaches 0.93 to 0.95 there.
+- Several CVs often share the best score; with the preselection they keep BM25's order, a
+  meaningful tie-breaker rather than the file order.
 
 The sample CVs and jobs were generated with a shared vocabulary, which favours a lexical
 method; real CVs, with synonyms and mixed languages, would narrow the gap. The harness measures

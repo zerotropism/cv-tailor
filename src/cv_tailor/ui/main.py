@@ -3,7 +3,7 @@ import streamlit as st
 from cv_tailor.adapters.exporters import to_docx, to_pdf, to_txt
 from cv_tailor.adapters.loader import extract_text_from_docx, load_resumes
 from cv_tailor.adapters.ollama_client import OllamaClient
-from cv_tailor.config import MODEL, PROMPT_RANK, PROMPT_REWRITE
+from cv_tailor.config import MODEL, PRESELECT, PROMPT_RANK, PROMPT_REWRITE
 from cv_tailor.domain.protocols import LLMError, LLMTimeout, LLMUnavailable
 from cv_tailor.domain.ranking import rank
 from cv_tailor.domain.rewriting import rewrite
@@ -91,6 +91,7 @@ def jd_input_screen():
                         resumes,
                         get_llm(),
                         PROMPT_RANK,
+                        preselect=PRESELECT,
                     )
                 st.session_state.resumes = resumes
                 st.session_state.rankings = rankings

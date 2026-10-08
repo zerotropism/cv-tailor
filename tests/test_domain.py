@@ -114,3 +114,34 @@ def test_raw_html_cannot_reach_the_exporters() -> None:
     from cv_tailor.domain.rewriting import clean_markdown
 
     assert clean_markdown("&lt;style&gt;x&lt;/style&gt;") == "&lt;style&gt;x&lt;/style&gt;"
+
+
+SIX_CVS = {
+    "net1": "bgp ospf routing network",
+    "ml1": "pytorch training",
+    "net2": "bgp routing",
+    "sec1": "siem soc",
+    "net3": "ospf network",
+    "infra1": "kubernetes",
+}
+
+
+def test_preselection_sends_only_the_lexically_closest_cvs_to_the_model() -> None:
+    llm = FakeLLM(structured=matches(0.1, 0.9, 0.5))
+    rankings = rank("network engineer: bgp, ospf, routing", SIX_CVS, llm, "i", preselect=3)
+    sent = {data for _, data in llm.calls}
+    assert len(sent) == 3
+    assert all(any(word in data for word in ("bgp", "ospf")) for data in sent)
+    assert {r.name for r in rankings} == {"net1", "net2", "net3"}
+
+
+def test_the_shortlist_is_never_smaller_than_top_n() -> None:
+    llm = FakeLLM(structured=matches(*[0.5] * 4))
+    assert len(rank("bgp", SIX_CVS, llm, "i", top_n=4, preselect=2)) == 4
+    assert len(llm.calls) == 4
+
+
+def test_without_preselection_every_cv_is_scored() -> None:
+    llm = FakeLLM(structured=matches(*[0.5] * 6))
+    rank("bgp", SIX_CVS, llm, "i", preselect=None)
+    assert len(llm.calls) == 6

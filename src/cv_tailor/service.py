@@ -8,14 +8,14 @@ import asyncio
 from collections.abc import Callable
 from pathlib import Path
 
-from cv_tailor.config import CV_DIR, JOB_DIR, PROMPT_RANK, PROMPT_REWRITE
+from cv_tailor.config import CV_DIR, JOB_DIR, PRESELECT, PROMPT_RANK, PROMPT_REWRITE
 from cv_tailor.domain.models import Ranking, RewrittenCV
 from cv_tailor.domain.protocols import LLMClient
 from cv_tailor.domain.ranking import DEFAULT_TOP_N, rank
 from cv_tailor.domain.rewriting import rewrite
 
 TIMEOUT_ENV_VAR = "CV_TAILOR_TIMEOUT"
-# Ranking makes one model call per CV: about 3 minutes for 50 CVs with llama3.2:3b
+# Ranking 15 preselected CVs takes about 1 minute with llama3.2:3b, 1.5 with qwen3.5:4b-mlx
 DEFAULT_TIMEOUT_SECONDS = 600.0
 
 
@@ -45,12 +45,14 @@ class CVTailor:
         job_dir: Path = JOB_DIR,
         rank_prompt: str = PROMPT_RANK,
         rewrite_prompt: str = PROMPT_REWRITE,
+        preselect: int | None = PRESELECT,
     ) -> None:
         self.llm = llm
         self.cv_dir = cv_dir
         self.job_dir = job_dir
         self.rank_prompt = rank_prompt
         self.rewrite_prompt = rewrite_prompt
+        self.preselect = preselect
 
     def cv_names(self) -> list[str]:
         return list(_texts(self.cv_dir))
@@ -72,7 +74,7 @@ class CVTailor:
 
     def rank(self, job_description: str, top_n: int = DEFAULT_TOP_N) -> list[Ranking]:
         cvs = {name: self.cv(name) for name in self.cv_names()}
-        return rank(job_description, cvs, self.llm, self.rank_prompt, top_n)
+        return rank(job_description, cvs, self.llm, self.rank_prompt, top_n, self.preselect)
 
     def rewrite(self, job_description: str, cv_name: str) -> RewrittenCV:
         return rewrite(job_description, cv_name, self.cv(cv_name), self.llm, self.rewrite_prompt)
