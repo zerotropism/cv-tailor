@@ -13,6 +13,11 @@ DEFAULT_TIMEOUT_SECONDS = 120.0
 DEFAULT_CONCURRENCY = 4
 
 
+def describe(exc: BaseException) -> str:
+    """The exception's text, or its type when the text is empty, as for async read timeouts."""
+    return str(exc) or type(exc).__name__
+
+
 def translate_errors(func):
     """Keep httpx out of the domain and out of the UI."""
 
@@ -21,11 +26,11 @@ def translate_errors(func):
         try:
             return func(*args, **kwargs)
         except httpx.TimeoutException as exc:
-            raise LLMTimeout(str(exc)) from exc
+            raise LLMTimeout(f"no answer within the client timeout ({describe(exc)})") from exc
         except (httpx.ConnectError, ConnectionError) as exc:
-            raise LLMUnavailable(str(exc)) from exc
+            raise LLMUnavailable(describe(exc)) from exc
         except (ollama.ResponseError, ollama.RequestError) as exc:
-            raise LLMError(str(exc)) from exc
+            raise LLMError(describe(exc)) from exc
 
     return wrapper
 
@@ -38,10 +43,13 @@ class OllamaClient:
         model: str,
         timeout: float = DEFAULT_TIMEOUT_SECONDS,
         concurrency: int = DEFAULT_CONCURRENCY,
+        think: bool = False,
     ) -> None:
         self.model = model
         self.timeout = timeout
         self.concurrency = concurrency
+        # Off by default: qwen3.5:4b-mlx reasoned for about 95 s before a two-sentence score
+        self.think = think
         # timeout is an httpx keyword forwarded by the client, not an Ollama option
         self._client = ollama.Client(timeout=timeout)
 
@@ -53,7 +61,9 @@ class OllamaClient:
 
     @translate_errors
     def complete(self, instructions: str, data: str) -> str:
-        response = self._client.chat(model=self.model, messages=self._messages(instructions, data))
+        response = self._client.chat(
+            model=self.model, messages=self._messages(instructions, data), think=self.think
+        )
         return response["message"]["content"]
 
     @translate_errors
@@ -62,6 +72,7 @@ class OllamaClient:
             model=self.model,
             messages=self._messages(instructions, data),
             format=schema.model_json_schema(),
+            think=self.think,
         )
         return schema.model_validate_json(response["message"]["content"])
 
@@ -84,6 +95,7 @@ class OllamaClient:
                     model=self.model,
                     messages=self._messages(instructions, block),
                     format=schema.model_json_schema(),
+                    think=self.think,
                 )
                 return schema.model_validate_json(response["message"]["content"])
 

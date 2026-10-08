@@ -120,6 +120,10 @@ The ranker asks for a JSON object constrained by a schema. `llama3.2:3b` handles
 rewriting quality is modest and it wraps its answer in a code fence despite being told not to
 (stripped automatically). A 7B or larger model produces noticeably better rewrites.
 
+Reasoning is switched off (`think=False` on every Ollama call). With it, `qwen3.5:4b-mlx` spent
+about 95 seconds thinking before each two-sentence score, against 11 seconds without; models
+without reasoning, such as `llama3.2:3b`, accept the setting.
+
 ## Performance
 
 Ranking makes one model call per CV, sequentially bounded by a semaphore. On a compute-bound
@@ -154,6 +158,11 @@ Strategies.
 uv run cv-tailor-eval --strategies lexical
 uv run cv-tailor-eval --models llama3.2:3b qwen3.5:4b-mlx --runs 3
 ```
+
+Each model is measured completely, run after run, before the next one starts: a model that
+fails leaves the previous ones fully measured. `--think` lets reasoning models think, at the
+cost of minutes per call; `--timeout` sets the seconds allowed per model call (120 by
+default). Both are recorded under the summary table.
 
 Each outcome (strategy, model, run, job, full ranking, metrics, timing) is appended to
 `evaluation/outcomes-<time>.jsonl` as it is measured, so an interrupted run keeps its data; the
