@@ -113,6 +113,24 @@ def test_every_strategy_is_evaluated_and_summarised(service) -> None:
     assert "| llm | fake | 2 | 1.000 |" in markdown_table(list(summaries.values()))
 
 
+def test_each_model_is_measured_fully_before_the_next(service) -> None:
+    """A model that fails must not cost the previous model its hybrid measurements."""
+    outcomes = evaluate(
+        service, ["llm", "hybrid"], ["first", "second"], 2, llm_for=lambda m: CategoryLLM()
+    )
+    order = [(o.model, o.run, o.strategy) for o in outcomes[::4]]
+    assert order == [
+        ("first", 1, "llm"),
+        ("first", 1, "hybrid"),
+        ("first", 2, "llm"),
+        ("first", 2, "hybrid"),
+        ("second", 1, "llm"),
+        ("second", 1, "hybrid"),
+        ("second", 2, "llm"),
+        ("second", 2, "hybrid"),
+    ]
+
+
 def test_the_cli_writes_outcomes_and_a_summary(tmp_path, capsys) -> None:
     """The lexical strategy needs no model: the CLI runs it on the bundled data."""
     import json
@@ -123,5 +141,7 @@ def test_the_cli_writes_outcomes_and_a_summary(tmp_path, capsys) -> None:
     lines = next(tmp_path.glob("outcomes-*.jsonl")).read_text().splitlines()
     outcomes = [json.loads(line) for line in lines]
     assert [o["job"] for o in outcomes] == list(JOB_CATEGORIES)
-    assert next(tmp_path.glob("summary-*.md")).read_text().startswith("| Strategy |")
+    summary = next(tmp_path.glob("summary-*.md")).read_text()
+    assert summary.startswith("| Strategy |")
+    assert "Options: think=False, timeout=120s, preselect=15" in summary
     assert "| lexical | - | 1 |" in capsys.readouterr().out

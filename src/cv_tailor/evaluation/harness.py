@@ -99,10 +99,10 @@ def evaluate(
     """Every strategy for every job; model strategies once per model and run, lexical once."""
     cvs = {name: service.cv(name) for name in service.cv_names()}
     outcomes = []
+    # model first, then run: a model that fails leaves the previous models fully measured
     plan = [("lexical", "-", 1)] if "lexical" in strategies else []
-    plan += [
-        (s, m, r) for s in strategies if s != "lexical" for m in models for r in range(1, runs + 1)
-    ]
+    model_strategies = [s for s in strategies if s != "lexical"]
+    plan += [(s, m, r) for m in models for r in range(1, runs + 1) for s in model_strategies]
     for strategy, model, run in plan:
         llm = None if strategy == "lexical" else llm_for(model)
         for job_name in JOB_CATEGORIES:

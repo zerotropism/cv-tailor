@@ -10,7 +10,7 @@ import sys
 from datetime import UTC, datetime
 from pathlib import Path
 
-from cv_tailor.adapters.ollama_client import OllamaClient
+from cv_tailor.adapters.ollama_client import DEFAULT_TIMEOUT_SECONDS, OllamaClient
 from cv_tailor.config import MODEL
 from cv_tailor.domain.protocols import LLMError
 from cv_tailor.evaluation.harness import (
@@ -31,6 +31,15 @@ def parse(argv: list[str] | None) -> argparse.Namespace:
     parser.add_argument("--runs", type=int, default=3, help="runs per model strategy")
     parser.add_argument("--preselect", type=int, default=DEFAULT_PRESELECT)
     parser.add_argument("--output", type=Path, default=Path("evaluation"))
+    parser.add_argument(
+        "--think",
+        action=argparse.BooleanOptionalAction,
+        default=False,
+        help="let reasoning models think before answering (slow: minutes per call)",
+    )
+    parser.add_argument(
+        "--timeout", type=float, default=DEFAULT_TIMEOUT_SECONDS, help="seconds per model call"
+    )
     return parser.parse_args(argv)
 
 
@@ -61,13 +70,15 @@ def main(argv: list[str] | None = None) -> None:
                 args.strategies,
                 args.models,
                 args.runs,
-                llm_for=OllamaClient,
+                llm_for=lambda model: OllamaClient(model, args.timeout, think=args.think),
                 preselect=args.preselect,
                 report=record,
             )
         except LLMError as exc:
-            raise SystemExit(f"error: {exc} (outcomes so far: {raw})") from None
+            message = f"error: {type(exc).__name__}: {exc} (outcomes so far: {raw})"
+            raise SystemExit(message) from None
     table = markdown_table(summarise(outcomes))
-    (args.output / f"summary-{stamp}.md").write_text(table + "\n")
+    options = f"think={args.think}, timeout={args.timeout:g}s, preselect={args.preselect}"
+    (args.output / f"summary-{stamp}.md").write_text(f"{table}\n\nOptions: {options}\n")
     print(table)
     print(f"\noutcomes: {raw}", file=sys.stderr)
