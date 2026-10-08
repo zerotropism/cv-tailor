@@ -98,7 +98,7 @@ def create_app(service: CVTailor, timeout: float = DEFAULT_TIMEOUT_SECONDS) -> F
 
     @app.post("/rank")
     async def rank(request: RankRequest) -> list[Ranking]:
-        """Score every CV against the job, best first: one model call per CV."""
+        """The CVs that fit the job best: BM25 shortlist, then one model call per shortlisted CV."""
         return await run(
             lambda: service.rank(
                 service.job_text(request.job_name, request.job_description), request.top_n

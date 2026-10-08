@@ -11,9 +11,9 @@ import time
 from collections.abc import Callable, Mapping
 from dataclasses import asdict, dataclass
 
+from cv_tailor.domain.lexical import bm25_scores, lexical_ranking
 from cv_tailor.domain.protocols import LLMClient
-from cv_tailor.domain.ranking import rank
-from cv_tailor.evaluation.lexical import bm25_scores, lexical_ranking
+from cv_tailor.domain.ranking import DEFAULT_PRESELECT, rank
 from cv_tailor.evaluation.metrics import average_precision, ndcg_at, precision_at, tied_with_top
 from cv_tailor.service import CVTailor
 
@@ -24,7 +24,6 @@ JOB_CATEGORIES = {
     "JD_Network_Engineer": "network",
 }
 STRATEGIES = ("lexical", "llm", "hybrid")
-DEFAULT_PRESELECT = 15
 
 
 def relevant_cvs(cv_names: list[str], job_name: str) -> set[str]:
@@ -58,7 +57,8 @@ class Outcome:
 def ranked_by_model(
     job: str, cvs: Mapping[str, str], llm: LLMClient, instructions: str
 ) -> tuple[list[str], list[float]]:
-    rankings = rank(job, cvs, llm, instructions, top_n=len(cvs))
+    # every CV given is scored: the strategies choose the CVs themselves
+    rankings = rank(job, cvs, llm, instructions, top_n=len(cvs), preselect=None)
     return [r.name for r in rankings], [r.score for r in rankings]
 
 

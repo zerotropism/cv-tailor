@@ -54,9 +54,9 @@ def create_server(service: CVTailor, timeout: float = DEFAULT_TIMEOUT_SECONDS) -
     async def rank_cvs(
         job_name: str = "", job_description: str = "", top_n: int = DEFAULT_TOP_N
     ) -> list[Ranking]:
-        """Score every CV against a job, best first. Give a job_name or a job_description.
+        """The CVs that fit a job best, scored and explained. Give a job_name or a job_description.
 
-        One model call per CV: this takes minutes on a local model.
+        BM25 shortlists the closest CVs, then the model scores each one: about a minute locally.
         """
         return await run(lambda: service.rank(service.job_text(job_name, job_description), top_n))
 

@@ -1,4 +1,6 @@
 model: 'llama3.2:3b'
+# CVs kept by the BM25 preselection for the model to score (0: score them all)
+preselect: 15
 prompts:
   rank: >
     You are an impartial, professional, and highly concise evaluator.

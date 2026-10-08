@@ -1,4 +1,4 @@
-"""BM25: a lexical score with no model, as a baseline and as a preselection before the model."""
+"""BM25: a lexical score with no model. Ranking uses it to preselect the CVs the model scores."""
 
 import math
 import re
