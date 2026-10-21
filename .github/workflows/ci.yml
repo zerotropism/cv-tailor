@@ -18,4 +18,6 @@ jobs:
       - run: uv run pytest
       - run: |
           uv export --format requirements-txt --no-hashes -o /tmp/req.txt
-          uvx pip-audit -r /tmp/req.txt --no-deps
+          # The export is the resolved lock: pip must not resolve it again, or an override
+          # in pyproject.toml reads as a conflict
+          uvx pip-audit -r /tmp/req.txt --no-deps --disable-pip
