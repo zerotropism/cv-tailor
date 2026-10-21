@@ -39,3 +39,10 @@ dev = [
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
+
+[tool.uv]
+# streamlit 1.66, the latest, still declares pillow<13, and pillow 12.3.0 carries eight
+# advisories fixed in 13.0.0 (malformed TIFF, GIF, PPM, EPS and PDF files). cv-tailor opens
+# no image itself; the tests, the UI loaded headless and a WeasyPrint render with an embedded
+# image all pass on 13. Remove this once streamlit accepts pillow 13.
+override-dependencies = ["pillow>=13"]
