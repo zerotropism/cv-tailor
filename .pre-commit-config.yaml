@@ -15,6 +15,8 @@ repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
     hooks:
+      # Commits go on a branch. A new repo makes its first commit with SKIP=no-commit-to-branch
+      - id: no-commit-to-branch
       - id: check-added-large-files
         args: [--maxkb=5000]
       - id: end-of-file-fixer
